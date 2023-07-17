@@ -1,4 +1,4 @@
-package httpconnection
+package http
 
 import (
 	"errors"
