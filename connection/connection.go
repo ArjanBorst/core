@@ -1,4 +1,4 @@
-package connection
+package httpConnection
 
 import (
 	"errors"
@@ -7,6 +7,18 @@ import (
 	"net/http"
 	"time"
 )
+
+type HttpConnection interface {
+	CreateNewRequest(url string)
+	ProcessRequest(resp *http.Response)
+}
+
+type HttpConn struct {
+	Response *http.Response
+	result   []byte
+	Request  *http.Request
+	Error    error
+}
 
 const (
 	username   = ""
@@ -17,42 +29,42 @@ const (
 	delay      = time.Second * 60
 )
 
-func createNewRequest(url string) (*http.Response, error) {
-	var req *http.Request
-	var resp *http.Response
-	var err error
+func (conn *HttpConn) CreateNewRequest(url string) error {
+	//var req *http.Request
+	//var resp *http.Response
+	//var err error
 
 	for retries := 0; retries < maxRetries; retries++ {
 
-		req, err = http.NewRequest("GET", url, nil)
-		if err == nil {
-			req.Header.Set("Accept", "application/json")
-			req.SetBasicAuth(username, password)
+		conn.Request, conn.Error = http.NewRequest("GET", url, nil)
+		if conn.Error == nil {
+			conn.Request.Header.Set("Accept", "application/json")
+			conn.Request.SetBasicAuth(username, password)
 			client := &http.Client{}
-			resp, err = client.Do(req)
+			conn.Response, conn.Error = client.Do(conn.Request)
 
-			if err == nil && resp.StatusCode == 200 {
-				return resp, nil
+			if conn.Error == nil && conn.Response.StatusCode == 200 {
+				return nil
 			}
 		}
 
 		time.Sleep(delay)
 	}
 
-	log.Println("Retries exhausted, unable to retrieve picklists: " + url + " res:  " + resp.Status)
+	log.Println("Retries exhausted: " + url + " response: " + conn.Response.Status)
 
-	if err != nil {
-		return nil, err
+	if conn.Error != nil {
+		return conn.Error
 	}
 
-	if resp != nil {
-		return nil, errors.New(resp.Status)
+	if conn.Response != nil {
+		return errors.New(conn.Response.Status)
 	}
 
-	return nil, errors.New("unknown error occurred")
+	return errors.New("unknown error occurred")
 }
 
-func processRequest(resp *http.Response) ([]byte, error) {
+func ProcessRequest(resp *http.Response) ([]byte, error) {
 
 	defer resp.Body.Close()
 
