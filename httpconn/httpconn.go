@@ -2,7 +2,6 @@ package httpconn
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -108,6 +107,6 @@ func (c *HttpConn) Error() error {
 }
 
 func (c *HttpConn) Result() []byte {
-	fmt.Printf("c.result: %v\n", string(c.result))
+	//fmt.Printf("c.result: %v\n", string(c.result))
 	return c.result
 }
