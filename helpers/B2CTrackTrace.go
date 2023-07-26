@@ -49,12 +49,23 @@ func GetCourier(website string) (string, error) {
 		return "", err
 	}
 
-	startIndex := strings.Count(websiteBody, "bpost.be")
-	if startIndex == -1 {
-		return "", nil
+	cntDHL := strings.Count(websiteBody, "DHL")
+	cntBpost := strings.Count(websiteBody, "bpost.be")
+	cntDPD := strings.Count(websiteBody, "DPD")
+
+	if cntDHL > 0 {
+		return "dhl", nil
 	}
 
-	return "bpost", nil
+	if cntBpost > 0 {
+		return "be-post", nil
+	}
+
+	if cntDPD > 0 {
+		return "dpd", nil
+	}
+
+	return "", nil
 }
 
 func isValidCharForTrackAndTrace(s string) bool {
